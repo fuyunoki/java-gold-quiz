@@ -225,5 +225,118 @@ System.out.println(f.apply(3, 4));`,
         '「プリミティブ特化」版が用意されており、これらを使うとボクシングを避けて性能・メモリ効率を改善できます。\n' +
         'IntStream などが返す値をそのまま処理する場面で特に有効です。',
     },
+    {
+      id: 'lambda-011',
+      categoryId: 'lambda',
+      difficulty: 1,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `Consumer<String> c1 = s -> System.out.print("A:" + s + " ");
+Consumer<String> c2 = s -> System.out.print("B:" + s);
+c1.andThen(c2).accept("x");`,
+      choices: [
+        { id: 'a', text: 'A:x B:x' },
+        { id: 'b', text: 'B:x A:x' },
+        { id: 'c', text: 'A:x' },
+        { id: 'd', text: 'コンパイルエラー' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'Consumer にも andThen があります。Function の andThen と少し違い、Consumer は値を返さないので\n' +
+        '「同じ入力を、2つの Consumer に順番に渡す」動きになります。\n\n' +
+        'c1.andThen(c2).accept("x") は、まず c1 に "x" を渡し（"A:x "）、次に c2 に同じ "x" を渡します（"B:x"）。\n' +
+        'よって "A:x B:x" の順で出力されます。Function の andThen（前の結果を次に渡す）との違いを意識しましょう。',
+    },
+    {
+      id: 'lambda-012',
+      categoryId: 'lambda',
+      difficulty: 2,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `Predicate<Integer> positive = n -> n > 0;
+Predicate<Integer> even = n -> n % 2 == 0;
+System.out.println(positive.and(even).test(4));
+System.out.println(positive.and(even).test(3));`,
+      choices: [
+        { id: 'a', text: 'true と false' },
+        { id: 'b', text: 'true と true' },
+        { id: 'c', text: 'false と false' },
+        { id: 'd', text: 'コンパイルエラー' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'Predicate.and(other) は「両方の条件が true のときだけ true」を返す合成です（論理 AND）。\n\n' +
+        '・test(4): 4>0（true）かつ 4は偶数（true）→ true\n' +
+        '・test(3): 3>0（true）かつ 3は偶数（false）→ false\n\n' +
+        '他にも or（どちらか true）、negate（反転）があり、これらを組み合わせて複雑な条件を読みやすく書けます。',
+    },
+    {
+      id: 'lambda-013',
+      categoryId: 'lambda',
+      difficulty: 2,
+      prompt: 'Function.identity() が返す関数の説明として正しいものを選びなさい。',
+      code: `Map<String, Integer> m = Stream.of("a", "bb", "ccc")
+    .collect(Collectors.toMap(Function.identity(), String::length));`,
+      choices: [
+        { id: 'a', text: '受け取った引数をそのまま返す関数（x -> x と同じ）' },
+        { id: 'b', text: '常に null を返す関数' },
+        { id: 'c', text: '引数を大文字にして返す関数' },
+        { id: 'd', text: '引数の長さを返す関数' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'Function.identity() は「受け取ったものをそのまま返す」関数を返します。x -> x と同じ意味です。\n\n' +
+        'このコードでは toMap のキー生成に使い、「文字列そのもの」をキー、「その長さ」を値にした Map を作っています\n' +
+        '（{a=1, bb=2, ccc=3}）。\n' +
+        '「変換せずそのまま使いたい」場面で s -> s と書く代わりに使うと意図が明確になります。',
+    },
+    {
+      id: 'lambda-014',
+      categoryId: 'lambda',
+      difficulty: 2,
+      prompt: '次のコードについて正しい説明を選びなさい。',
+      code: `Supplier<List<String>> factory = ArrayList::new;
+List<String> list = factory.get();
+list.add("hello");`,
+      choices: [
+        {
+          id: 'a',
+          text: 'ArrayList::new はコンストラクタ参照で、Supplier の get() が呼ばれるたびに新しい ArrayList を作る',
+        },
+        { id: 'b', text: 'ArrayList::new はコンパイルエラーになる' },
+        { id: 'c', text: 'factory.get() は毎回同じ（共有の）リストを返す' },
+        { id: 'd', text: 'コンストラクタ参照は Supplier には代入できない' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'ClassName::new は「コンストラクタ参照」です。ここでは引数なしの ArrayList() を表し、\n' +
+        '「引数なしで値を作る」形なので Supplier<List<String>> に代入できます。\n\n' +
+        'factory.get() を呼ぶたびに new ArrayList() が実行され、毎回新しい空リストが返ります（c は誤り）。\n' +
+        '() -> new ArrayList<>() と書くのと同じですが、コンストラクタ参照の方が簡潔です。',
+    },
+    {
+      id: 'lambda-015',
+      categoryId: 'lambda',
+      difficulty: 3,
+      prompt: 'ラムダ式が「実質的final」でなくても参照・変更できる変数はどれですか。正しい説明を選びなさい。',
+      code: `class Counter {
+    private int count = 0;
+    Runnable r = () -> count++;   // (1)
+}`,
+      choices: [
+        {
+          id: 'a',
+          text: 'インスタンスフィールド（count）はラムダから変更できる。実質的finalの制約はローカル変数だけに適用される',
+        },
+        { id: 'b', text: '(1) はコンパイルエラーになる（count が実質的finalでないため）' },
+        { id: 'c', text: 'ラムダはいかなる変数も変更できない' },
+        { id: 'd', text: 'static フィールドはラムダから参照できない' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        '「実質的final でなければならない」という制約は、あくまで“ローカル変数”をキャプチャするときの話です。\n\n' +
+        'インスタンスフィールドや static フィールドには、この制約は当てはまりません。\n' +
+        'なぜなら、フィールドはスタック上のローカル変数と違い、オブジェクト（やクラス）を通して常にアクセスでき、\n' +
+        'ラムダはフィールドを「値のコピー」ではなく「その場で参照」するからです。\n\n' +
+        'したがって count++ のようにフィールドを変更する処理もラムダ内で書けます（(1) は正しくコンパイルできます）。',
+    },
   ],
 } satisfies CategoryModule

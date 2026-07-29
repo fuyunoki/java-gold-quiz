@@ -251,5 +251,133 @@ System.out.println(result);`,
         'このいずれも付けないとコンパイルエラーになります（b・c・d のように一律固定/自由ではない）。\n' +
         'こうして「継承の広がりを設計者が完全に管理できる」のが sealed の目的です。',
     },
+    {
+      id: 'modern-011',
+      categoryId: 'modern-java',
+      difficulty: 1,
+      prompt: 'record についての説明として正しいものをすべて選びなさい。',
+      choices: [
+        { id: 'a', text: 'record はインターフェースを implements できる' },
+        { id: 'b', text: 'record は他のクラスを extends できない（暗黙に java.lang.Record を継承するため）' },
+        { id: 'c', text: 'record のフィールド（コンポーネント）は final で、生成後に変更できない' },
+        { id: 'd', text: 'record は abstract にできる' },
+      ],
+      correctChoiceIds: ['a', 'b', 'c'],
+      explanation:
+        'record の性質を整理します。\n' +
+        '・a … インターフェースの実装は可能（implements できる）。\n' +
+        '・b … クラスの継承は不可。record は暗黙に java.lang.Record を継承しており、他クラスは extends できない。\n' +
+        '・c … コンポーネントは final。生成後に値を変えられない不変オブジェクト。\n\n' +
+        'd は誤りで、record は abstract にできません（インスタンス化できる具体的なデータ型として設計されているため）。\n' +
+        '「継承はできないが、インターフェース実装はできる不変データクラス」と捉えましょう。',
+    },
+    {
+      id: 'modern-013',
+      categoryId: 'modern-java',
+      difficulty: 2,
+      prompt: 'record に「追加で書けるもの／書けないもの」の説明として正しいものを選びなさい。',
+      code: `record Point(int x, int y) {
+    static int origin = 0;               // (1)
+    double distance() { return Math.hypot(x, y); }  // (2)
+    // int z;                            // (3)
+}`,
+      choices: [
+        {
+          id: 'a',
+          text: '(1) static フィールドや (2) インスタンスメソッドは追加できるが、(3) の追加インスタンスフィールドは宣言できない',
+        },
+        { id: 'b', text: 'record にはメソッドを一切追加できない' },
+        { id: 'c', text: '追加のインスタンスフィールド(3)も自由に宣言できる' },
+        { id: 'd', text: 'record に static フィールドは持てない' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'record で「追加できるもの／できないもの」の境界がテーマです。\n' +
+        '・static フィールド・static メソッド … 追加できる（(1)）。\n' +
+        '・インスタンスメソッド … 追加できる（(2)）。\n' +
+        '・追加のインスタンスフィールド … 宣言できない（(3)）。\n\n' +
+        'インスタンスの状態は「ヘッダーの ( ) で宣言したコンポーネントだけ」に限定されます。\n' +
+        'これにより「状態＝コンポーネントがすべて」という一貫性（equals/hashCode の対象も明確）が保たれます。',
+    },
+    {
+      id: 'modern-012',
+      categoryId: 'modern-java',
+      difficulty: 2,
+      prompt: '値を返す switch 式で、列挙型(enum)や sealed 型を分岐するときの「網羅性(exhaustiveness)」について正しい説明を選びなさい。',
+      code: `enum Size { S, M, L }
+// Size sz = ...;
+int n = switch (sz) {
+    case S -> 1;
+    case M -> 2;
+    case L -> 3;
+};`,
+      choices: [
+        {
+          id: 'a',
+          text: 'switch 式はすべての場合を網羅する必要がある。enum の全定数を case で扱えば default は省略できる',
+        },
+        { id: 'b', text: 'switch 式でも default は必ず書かなければならない' },
+        { id: 'c', text: '網羅していなくてもコンパイルできる（実行時に例外）' },
+        { id: 'd', text: 'switch 式では enum を分岐できない' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'switch「式」は必ず値を返すため、「すべての入力に対して結果がある（網羅的）」ことをコンパイラが要求します。\n\n' +
+        'enum の場合、すべての定数（S, M, L）を case で扱えば網羅済みとみなされ、default を省略できます。\n' +
+        '逆に一部の定数を書き忘れると、default が無い限りコンパイルエラーになります（書き漏れに気づける利点）。\n\n' +
+        'sealed 型でも同様に、permits に列挙された全ての型を扱えば網羅的になります。\n' +
+        'switch「文」と違い、式は網羅性を強制される点が重要です。',
+    },
+    {
+      id: 'modern-015',
+      categoryId: 'modern-java',
+      difficulty: 2,
+      prompt: 'テキストブロックの構文について正しい説明を選びなさい。',
+      code: `String s = """
+    Hello""";`,
+      choices: [
+        {
+          id: 'a',
+          text: '開始の """ の直後は改行が必須で、内容は次の行から始まる（"""Hello の形は不可）',
+        },
+        { id: 'b', text: '開始の """ の直後にそのまま文字を書いてよい（"""Hello""" が可能）' },
+        { id: 'c', text: 'テキストブロックは終了の """ を書かなくてよい' },
+        { id: 'd', text: 'テキストブロックは1行でしか書けない' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'テキストブロックには構文ルールがあります。最重要は「開始デリミタ """ の直後は改行しなければならない」点です。\n' +
+        'つまり内容は次の行から始まります。"""Hello のように同じ行に文字を続けるとコンパイルエラーです（b は誤り）。\n\n' +
+        'この例では、次の行の Hello が内容になり、共通インデントが除去されて s は "Hello" になります。\n' +
+        '終了の """ は内容の後に置きます（同じ行末に置くか、次行に置くかで末尾改行の有無が変わります）。',
+    },
+    {
+      id: 'modern-014',
+      categoryId: 'modern-java',
+      difficulty: 3,
+      prompt: '次のコードはコンパイル・実行できますか。',
+      code: `Object obj = "hello";
+if (!(obj instanceof String s)) {
+    return;
+}
+System.out.println(s.length());`,
+      choices: [
+        {
+          id: 'a',
+          text: 'できる。条件が偽（Stringである）のときだけ後続に進むため、その範囲では s が使える（フロースコープ）',
+        },
+        { id: 'b', text: 'コンパイルエラー。s は if ブロックの中でしか使えない' },
+        { id: 'c', text: '実行時に ClassCastException' },
+        { id: 'd', text: 's.length() は常に 0 を返す' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'instanceof のパターン変数（バインディング変数）が使える範囲は、ブロックの位置ではなく\n' +
+        '「その変数が確実に代入されていると保証される範囲」で決まります（フロースコープ）。\n\n' +
+        'この例では、!(obj instanceof String s) が真（＝String でない）のとき return で抜けます。\n' +
+        'したがって return を通り過ぎた後は「obj は必ず String」＝ s が確実に代入済み、と保証されます。\n' +
+        'そのため if ブロックの外でも s を使え、s.length() は 5 を出力します。\n' +
+        '「早期 return と組み合わせると、パターン変数を後続で使える」という実用的なパターンです。',
+    },
   ],
 } satisfies CategoryModule

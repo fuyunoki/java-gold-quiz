@@ -220,5 +220,126 @@ try (A a = new A(); B b = new B()) {
         '昔の finally で手動 close する書き方では close の例外が本体の例外を上書きして消してしまう問題がありましたが、\n' +
         'try-with-resources はこの仕組みで両方の情報を失わないようにしています。',
     },
+    {
+      id: 'exceptions-010',
+      categoryId: 'exceptions',
+      difficulty: 1,
+      prompt: 'キーワード throw と throws の違いとして正しいものを選びなさい。',
+      choices: [
+        {
+          id: 'a',
+          text: 'throw は例外インスタンスを実際に投げる文、throws はメソッド宣言で「この例外を投げうる」と宣言する',
+        },
+        { id: 'b', text: 'throw はメソッド宣言に書き、throws は本体で例外を投げる' },
+        { id: 'c', text: 'throw と throws は同じ意味で交換可能' },
+        { id: 'd', text: 'throws は例外を握りつぶすためのキーワードである' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        '似ていますが役割は別です。\n' +
+        '・throw … 実際に例外を投げる「文」。例: throw new IllegalArgumentException("bad");\n' +
+        '・throws … メソッドの宣言に付け、「このメソッドはこの例外を投げる可能性がある」と呼び出し側に知らせる。\n' +
+        '　　例: void read() throws IOException { ... }\n\n' +
+        'チェック例外を throw する（かもしれない）メソッドは、その例外を catch しない限り throws で宣言する必要があります。',
+    },
+    {
+      id: 'exceptions-014',
+      categoryId: 'exceptions',
+      difficulty: 2,
+      prompt: '次のうち「非チェック例外（RuntimeException 系）」であるものをすべて選びなさい。',
+      choices: [
+        { id: 'a', text: 'NumberFormatException' },
+        { id: 'b', text: 'ClassCastException' },
+        { id: 'c', text: 'InterruptedException' },
+        { id: 'd', text: 'FileNotFoundException' },
+      ],
+      correctChoiceIds: ['a', 'b'],
+      explanation:
+        'RuntimeException を継承していれば非チェック例外です。\n' +
+        '・NumberFormatException … 数値変換失敗。IllegalArgumentException のサブクラスで非チェック。\n' +
+        '・ClassCastException … 不正なキャスト。非チェック。\n\n' +
+        '一方、次はチェック例外（catch か throws が必須）です。\n' +
+        '・InterruptedException … スレッド割り込み。Exception 直系のチェック例外。\n' +
+        '・FileNotFoundException … IOException のサブクラスでチェック例外。\n\n' +
+        '「バグ由来の実行時エラー系＝非チェック」「外部要因（I/O・割り込み）系＝チェック」と大まかに捉えると整理しやすいです。',
+    },
+    {
+      id: 'exceptions-012',
+      categoryId: 'exceptions',
+      difficulty: 2,
+      prompt: '例外の「連鎖（chaining）」についての説明として正しいものを選びなさい。',
+      code: `try {
+    readFile();               // IOException を投げうる
+} catch (IOException e) {
+    throw new RuntimeException("読み込み失敗", e);
+}`,
+      choices: [
+        {
+          id: 'a',
+          text: '元の例外(e)を「原因(cause)」として新しい例外に包んで投げ直す。あとで getCause() で元をたどれる',
+        },
+        { id: 'b', text: '元の例外 e は完全に失われ、原因はたどれない' },
+        { id: 'c', text: 'チェック例外を非チェック例外に包むことはできない' },
+        { id: 'd', text: 'この書き方はコンパイルエラーになる' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        '例外連鎖は「低レベルの例外を、より意味のある例外に包んで投げ直す」テクニックです。\n' +
+        'new RuntimeException("...", e) のように第2引数に原因（cause）を渡すと、元の例外がぶら下がります。\n\n' +
+        'これにより、呼び出し側では扱いやすい例外を受け取りつつ、getCause() で本当の原因（IOException）まで\n' +
+        'スタックトレースをたどれます。原因情報を失わずに抽象度を上げられるのが利点です。\n' +
+        'チェック例外を非チェック例外で包むこともよく行われます（c は誤り）。',
+    },
+    {
+      id: 'exceptions-011',
+      categoryId: 'exceptions',
+      difficulty: 2,
+      prompt: '次のメソッドをコンパイルするとどうなりますか。（read() は IOException を throws する）',
+      code: `void process() {
+    read();   // read() throws IOException
+}`,
+      choices: [
+        {
+          id: 'a',
+          text: 'コンパイルエラー。IOException（チェック例外）を catch するか、process に throws IOException を付ける必要がある',
+        },
+        { id: 'b', text: '問題なくコンパイルできる' },
+        { id: 'c', text: '実行時に初めて IOException が問題になる' },
+        { id: 'd', text: '警告は出るがコンパイルできる' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'IOException はチェック例外なので、「投げうるメソッドを呼ぶ側」は必ず対処しなければなりません。\n' +
+        '対処の方法は2つです。\n' +
+        '・try-catch で捕まえる。\n' +
+        '・自分のメソッドにも throws IOException を付けて、呼び出し元へ処理を委ねる。\n\n' +
+        'このコードはどちらもしていないため、コンパイルエラーになります。\n' +
+        '（非チェック例外なら、このような対処は義務ではありません。）',
+    },
+    {
+      id: 'exceptions-013',
+      categoryId: 'exceptions',
+      difficulty: 3,
+      prompt: '次のコードを実行すると、最終的に呼び出し元へ伝わる例外はどれですか。',
+      code: `try {
+    throw new RuntimeException("A");
+} finally {
+    throw new RuntimeException("B");
+}`,
+      choices: [
+        { id: 'a', text: '"B"（finally で投げた例外が優先され、"A" は失われる）' },
+        { id: 'b', text: '"A"（try で投げた例外が優先される）' },
+        { id: 'c', text: '"A" と "B" の両方が同時に投げられる' },
+        { id: 'd', text: '"A" が主、"B" が抑制例外として付加される' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'finally は必ず実行され、その中で例外を投げると、try で投げた例外を“上書き”して伝わります。\n' +
+        'この例では try の "A" が投げられかけますが、finally の "B" が投げられるため、最終的に伝わるのは "B" で、\n' +
+        '"A" は失われてしまいます（例外が消える危険なパターン）。\n\n' +
+        '※これは通常の try-finally の話です。似て非なる try-with-resources では、close() で起きた例外は\n' +
+        '「抑制例外(suppressed)」として本体の例外に付加され、両方の情報が残ります（d はそちらの挙動）。\n' +
+        '「finally で例外を投げない・return しない」のが安全な理由です。',
+    },
   ],
 } satisfies CategoryModule

@@ -204,5 +204,115 @@ System.out.println(d.toMinutes());`,
         '・d は誤り。日付も時刻も持ちます。\n\n' +
         '「ゾーンなしなら LocalDateTime、ゾーンありなら ZonedDateTime」と選びましょう。',
     },
+    {
+      id: 'datetime-010',
+      categoryId: 'datetime',
+      difficulty: 1,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `LocalTime t = LocalTime.of(14, 30);
+System.out.println(t.getHour());`,
+      choices: [
+        { id: 'a', text: '14' },
+        { id: 'b', text: '2' },
+        { id: 'c', text: '30' },
+        { id: 'd', text: 'コンパイルエラー' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'LocalTime は「時刻のみ」を表すクラスで、時は24時間制（0〜23）です。\n' +
+        'LocalTime.of(14, 30) は 14時30分。getHour() は時の部分 14 を返します（12時間制の 2 ではありません）。\n\n' +
+        '関連: getMinute() で分、getSecond() で秒。時に 24 以上や負の値を渡すと DateTimeException になります。',
+    },
+    {
+      id: 'datetime-011',
+      categoryId: 'datetime',
+      difficulty: 2,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `LocalDate d = LocalDate.parse("2024-03-15");
+System.out.println(d.getMonthValue());
+System.out.println(d.getDayOfWeek());`,
+      choices: [
+        { id: 'a', text: '3 と FRIDAY' },
+        { id: 'b', text: '15 と FRIDAY' },
+        { id: 'c', text: '3 と MARCH' },
+        { id: 'd', text: 'コンパイルエラー（parse は文字列を扱えない）' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'LocalDate.parse は、既定で ISO 形式（yyyy-MM-dd）の文字列を LocalDate に変換します。\n' +
+        '"2024-03-15" は 2024年3月15日。\n' +
+        '・getMonthValue() … 月を数値で返す（1始まりなので 3）。※ enum が欲しいときは getMonth()（MARCH）。\n' +
+        '・getDayOfWeek() … 曜日を DayOfWeek enum で返す。2024-03-15 は金曜なので FRIDAY。\n\n' +
+        '「getMonthValue＝数値」「getMonth＝enum」の違いに注意しましょう。',
+    },
+    {
+      id: 'datetime-012',
+      categoryId: 'datetime',
+      difficulty: 2,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `LocalDate a = LocalDate.of(2024, 1, 1);
+LocalDate b = LocalDate.of(2024, 2, 1);
+System.out.println(a.isBefore(b));
+System.out.println(a.isAfter(b));
+System.out.println(a.isEqual(a));`,
+      choices: [
+        { id: 'a', text: 'true / false / true' },
+        { id: 'b', text: 'false / true / true' },
+        { id: 'c', text: 'true / true / false' },
+        { id: 'd', text: 'false / false / false' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'LocalDate には日付の前後を比べるメソッドがあります。\n' +
+        '・isBefore(other) … 自分が other より前なら true。1/1 は 2/1 より前 → true。\n' +
+        '・isAfter(other) … 自分が other より後なら true。1/1 は 2/1 より後ではない → false。\n' +
+        '・isEqual(other) … 同じ日付なら true。a と a は同じ → true。\n\n' +
+        '大小比較は compareTo でもできますが、isBefore/isAfter の方が意図が読み取りやすくおすすめです。',
+    },
+    {
+      id: 'datetime-014',
+      categoryId: 'datetime',
+      difficulty: 2,
+      prompt: 'Instant についての説明として正しいものを選びなさい。',
+      code: `Instant now = Instant.now();`,
+      choices: [
+        {
+          id: 'a',
+          text: 'エポック（1970-01-01T00:00:00Z）からの経過に基づく、UTCの「時間軸上の一点」を表す。機械的なタイムスタンプ向き',
+        },
+        { id: 'b', text: 'Instant はタイムゾーン付きの「人間が読む日時」を表す' },
+        { id: 'c', text: 'Instant は日付だけを表し、時刻は持たない' },
+        { id: 'd', text: 'Instant.now() はローカルのタイムゾーンの現在時刻を表す' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'Instant は「時間軸上の一点」を表すクラスで、エポック（1970-01-01T00:00:00Z）からの経過に基づき、常にUTCです。\n' +
+        'ログのタイムスタンプや、時刻の差（Duration）を測るといった「機械的な時刻」に向いています。\n\n' +
+        '人間向けの「年月日時分＋タイムゾーン」を扱いたいときは ZonedDateTime を使います（b は ZonedDateTime の説明）。\n' +
+        'Instant はゾーンの概念を持たない絶対時刻で、now() もローカル時刻ではなくUTCの現在時点です。',
+    },
+    {
+      id: 'datetime-013',
+      categoryId: 'datetime',
+      difficulty: 3,
+      prompt: '次のコードを実行するとどうなりますか。',
+      code: `LocalDate d = LocalDate.parse("2024/03/15");`,
+      choices: [
+        {
+          id: 'a',
+          text: '実行時に DateTimeParseException（既定の parse は ISO 形式 yyyy-MM-dd を期待し、スラッシュ区切りは解釈できない）',
+        },
+        { id: 'b', text: '問題なく 2024-03-15 として解釈される' },
+        { id: 'c', text: 'コンパイルエラーになる' },
+        { id: 'd', text: 'null が返る' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        '引数1つの LocalDate.parse(text) は、ISO 形式（yyyy-MM-dd、ハイフン区切り）を前提とします。\n' +
+        '"2024/03/15" はスラッシュ区切りで形式が合わないため、実行時に DateTimeParseException が発生します。\n' +
+        'コンパイルは通る（文法は正しい）ので、あくまで実行時エラーです。\n\n' +
+        'スラッシュ区切りなど独自形式を解釈したい場合は、DateTimeFormatter.ofPattern("yyyy/MM/dd") を作り、\n' +
+        'LocalDate.parse(text, formatter) の2引数版を使います。',
+    },
   ],
 } satisfies CategoryModule

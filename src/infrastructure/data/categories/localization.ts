@@ -161,5 +161,111 @@ Number n = nf.parse("2,000.75");   // (2)`,
         'Integer.toString（c）は区切りを入れませんし、区切りが常にカンマとは限りません（d は誤り）。\n\n' +
         '「書式はロケールに任せる」のが国際化 API の基本方針です。',
     },
+    {
+      id: 'localization-005',
+      categoryId: 'localization',
+      difficulty: 1,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `Locale l = Locale.JAPAN;
+System.out.println(l.getLanguage() + "_" + l.getCountry());`,
+      choices: [
+        { id: 'a', text: 'ja_JP' },
+        { id: 'b', text: 'JP_ja' },
+        { id: 'c', text: 'Japanese_Japan' },
+        { id: 'd', text: 'jp_JA' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'Locale は言語コードと国コードを持ちます。\n' +
+        '・getLanguage() … 言語コード（小文字）。日本語は "ja"。\n' +
+        '・getCountry() … 国コード（大文字）。日本は "JP"。\n\n' +
+        'よって出力は "ja_JP"。言語コードは小文字・国コードは大文字という慣習を覚えておきましょう\n' +
+        '（"Japanese" や "Japan" のような名称ではなくコードで表されます）。',
+    },
+    {
+      id: 'localization-009',
+      categoryId: 'localization',
+      difficulty: 1,
+      prompt: 'ResourceBundle.getString(key) で、指定したキーがどのプロパティファイルにも存在しない場合の挙動として正しいものを選びなさい。',
+      choices: [
+        { id: 'a', text: 'MissingResourceException（非チェック例外）が投げられる' },
+        { id: 'b', text: 'null が返る' },
+        { id: 'c', text: '空文字 "" が返る' },
+        { id: 'd', text: 'キーの名前がそのまま返る' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'ResourceBundle.getString(key) は、基底ファイルまで探してもキーが見つからない場合、\n' +
+        'MissingResourceException を投げます（null や空文字は返しません）。\n\n' +
+        'これは RuntimeException のサブクラス（非チェック例外）なので catch は必須ではありませんが、\n' +
+        'キーの打ち間違いや翻訳漏れを実行時に検知できます。\n' +
+        '「無いキーは例外」という挙動を押さえ、キー名は定数化するなどして間違いを防ぐとよいでしょう。',
+    },
+    {
+      id: 'localization-010',
+      categoryId: 'localization',
+      difficulty: 2,
+      prompt: '次のコードの出力として最も適切なものを選びなさい。',
+      code: `NumberFormat nf =
+    NumberFormat.getPercentInstance(Locale.US);
+System.out.println(nf.format(0.25));`,
+      choices: [
+        { id: 'a', text: '25%' },
+        { id: 'b', text: '0.25%' },
+        { id: 'c', text: '0.25' },
+        { id: 'd', text: '2500%' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'NumberFormat.getPercentInstance(locale) は「パーセント表示」用のフォーマッタです。\n' +
+        '渡した数値を100倍し、% 記号を付けて表示します。\n\n' +
+        '0.25 は「割合（＝25%）」として扱われ、format すると "25%" になります。\n' +
+        '「0.25 のまま % を付ける」のではなく「×100して % を付ける」点がポイントです。\n' +
+        'getCurrencyInstance（通貨）、getInstance（一般数値）などと同じ系統のメソッドです。',
+    },
+    {
+      id: 'localization-011',
+      categoryId: 'localization',
+      difficulty: 2,
+      prompt: 'ResourceBundle.getBundle("Messages", locale) で、指定ロケール用のファイルが1つも見つからない場合の挙動として正しいものを選びなさい。',
+      choices: [
+        {
+          id: 'a',
+          text: '指定ロケールのファイルが無ければ、既定ロケール用のファイル、さらに基底ファイル（Messages.properties）へとフォールバックする',
+        },
+        { id: 'b', text: '見つからなければ即座に必ず例外になり、フォールバックは行われない' },
+        { id: 'c', text: '基底ファイル（Messages.properties）は探索対象に含まれない' },
+        { id: 'd', text: '指定ロケール以外は一切探さない' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'getBundle は「より具体的なものから、より一般的なものへ」段階的に探します。\n' +
+        '指定ロケール（言語_国 → 言語）で見つからない場合、既定ロケール（Locale.getDefault()）用も試み、\n' +
+        '最終的に基底ファイル Messages.properties へフォールバックします。\n\n' +
+        'そのため、基底ファイルさえ用意しておけば、未対応ロケールでも既定文言で動作します。\n' +
+        '基底ファイルも含めて本当に何も見つからないときに初めて MissingResourceException になります。',
+    },
+    {
+      id: 'localization-012',
+      categoryId: 'localization',
+      difficulty: 2,
+      prompt: '日付を「ロケールに応じた月名（例: 英語なら March、日本語なら 3月）」で表示したい。適切な方法を選びなさい。',
+      choices: [
+        {
+          id: 'a',
+          text: 'DateTimeFormatter.ofLocalizedDate(...) や ofPattern(...).withLocale(locale) を使い、ロケールを指定して整形する',
+        },
+        { id: 'b', text: '月の数値を自分で if 文で英語名・日本語名に変換する' },
+        { id: 'c', text: 'LocalDate.toString() を使えばロケールに応じて自動で月名になる' },
+        { id: 'd', text: '月名のローカライズは Java では不可能である' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        '日付・時刻の言語依存の整形は DateTimeFormatter にロケールを与えて行います。\n' +
+        '・ofLocalizedDate(FormatStyle) … ロケール標準の書式で整形。\n' +
+        '・ofPattern("MMMM").withLocale(locale) … パターン＋ロケール指定で月名などを言語化。\n\n' +
+        'こうすると同じ日付でも locale に応じて "March" / "3月" のように切り替わります。\n' +
+        '自前の if 変換（b）は保守が大変で国際化の意味がなく、toString()（c）は ISO 形式（2024-03-15）で月名にはなりません。',
+    },
   ],
 } satisfies CategoryModule

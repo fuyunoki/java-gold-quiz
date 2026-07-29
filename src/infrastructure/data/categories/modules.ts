@@ -213,5 +213,118 @@ export const modulesModule: CategoryModule = {
         'テスト用モジュールや、信頼できる特定モジュールにだけ内部 API を使わせたいときに使います。\n' +
         '「to」を付けない普通の exports は全モジュールに公開、「to」付きは指定先だけ、という違いです。',
     },
+    {
+      id: 'modules-010',
+      categoryId: 'modules',
+      difficulty: 1,
+      prompt: 'java.base モジュールについての説明として正しいものを選びなさい。',
+      choices: [
+        {
+          id: 'a',
+          text: 'すべてのモジュールが暗黙的に依存する基盤モジュールで、requires java.base; を書かなくても常に使える',
+        },
+        { id: 'b', text: '使うには必ず requires java.base; を明示する必要がある' },
+        { id: 'c', text: 'java.base には java.util や java.io は含まれない' },
+        { id: 'd', text: 'java.base は自分で作成するモジュールである' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'java.base は Java の中核（java.lang, java.util, java.io など）を含む基盤モジュールです。\n' +
+        'すべてのモジュールが暗黙的に java.base に依存するため、requires java.base; を書く必要はありません（自動）。\n\n' +
+        'たとえば String や List、Map などが使えるのは java.base のおかげです。\n' +
+        'java.sql や java.xml など、それ以外のモジュールを使いたい場合にだけ明示的に requires を書きます。',
+    },
+    {
+      id: 'modules-014',
+      categoryId: 'modules',
+      difficulty: 2,
+      prompt: 'requires static の意味として正しいものを選びなさい。',
+      code: `module com.example.app {
+    requires static com.example.annotations;
+}`,
+      choices: [
+        {
+          id: 'a',
+          text: 'コンパイル時には必要だが、実行時には任意（無くてもよい）とするオプション依存',
+        },
+        { id: 'b', text: 'コンパイル時も実行時も必須にする（通常の requires と同じ）' },
+        { id: 'c', text: '依存先を、自分を使う相手にも引き継ぐ（transitive と同じ）' },
+        { id: 'd', text: 'static メソッドだけを公開する指定' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'requires static は「オプション依存（optional dependency）」を表します。\n' +
+        'コンパイル時にはその依存が必要ですが、実行時には無くても動くようにできます。\n\n' +
+        '典型的な用途は、コンパイル時だけ使うアノテーション（実行時には保持されないもの）などです。\n' +
+        '関連修飾子の整理: requires（コンパイル・実行とも必須）／requires transitive（依存を推移的に引き継ぐ）／\n' +
+        'requires static（実行時は任意）。混同しやすいので対で覚えましょう。',
+    },
+    {
+      id: 'modules-011',
+      categoryId: 'modules',
+      difficulty: 2,
+      prompt: 'モジュール間の依存関係について、正しい説明をすべて選びなさい。',
+      choices: [
+        { id: 'a', text: '1つのモジュールは複数のモジュールを requires できる' },
+        { id: 'b', text: 'モジュール間の循環依存（A→B かつ B→A）は許されない' },
+        { id: 'c', text: 'requires していないモジュールの exports されたパッケージは使えない' },
+        { id: 'd', text: '循環依存は自動的に解決されるので問題ない' },
+      ],
+      correctChoiceIds: ['a', 'b', 'c'],
+      explanation:
+        'モジュールの依存関係のルールです。\n' +
+        '・a … requires は複数書ける（多数のモジュールに依存してよい）。\n' +
+        '・b, d … モジュール間の循環依存は許されず、コンパイルエラーになる（自動解決はされない。d は誤り）。\n' +
+        '・c … 相手が exports していても、自分が requires していなければ使えない。\n' +
+        '　　「相手が公開（exports）」かつ「自分が依存宣言（requires）」の両方が必要。\n\n' +
+        '循環依存が必要に思えた場合は、共通部分を別モジュールに切り出すなどの設計見直しが求められます。',
+    },
+    {
+      id: 'modules-012',
+      categoryId: 'modules',
+      difficulty: 2,
+      prompt: 'モジュール宣言に付ける open（open module）の効果として正しいものを選びなさい。',
+      code: `open module com.example.app {
+    requires spring.core;
+}`,
+      choices: [
+        {
+          id: 'a',
+          text: 'モジュール内のすべてのパッケージを、実行時のリフレクションに対して開放する（個別に opens を書かなくてよい）',
+        },
+        { id: 'b', text: 'すべてのパッケージを exports する（通常アクセスも全公開）' },
+        { id: 'c', text: 'モジュールを他から読めなくする' },
+        { id: 'd', text: 'open は requires と同じ意味である' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'モジュール宣言の先頭に open を付けると「open module」になり、\n' +
+        'すべてのパッケージが実行時のリフレクションに対して開放されます（各パッケージに opens を個別に書く手間が省ける）。\n\n' +
+        'ただし開放されるのは“リフレクション”に対してであり、通常のコンパイル時アクセス（exports の役割）とは別です（b は誤り）。\n' +
+        'リフレクションを多用するフレームワーク（DI やORMなど）と組み合わせるモジュールで使われることがあります。',
+    },
+    {
+      id: 'modules-013',
+      categoryId: 'modules',
+      difficulty: 3,
+      prompt: 'クラスパスに置いた（モジュール化されていない）コードが属する「無名モジュール（unnamed module）」について、正しい説明を選びなさい。',
+      choices: [
+        {
+          id: 'a',
+          text: '無名モジュールは他のすべてのモジュールを読めるが、名前付きモジュールは無名モジュールを requires できない（読めない）',
+        },
+        { id: 'b', text: '名前付きモジュールは無名モジュールを自由に requires できる' },
+        { id: 'c', text: '無名モジュールは他のモジュールを一切読めない' },
+        { id: 'd', text: '無名モジュールとモジュールパス上の自動モジュールは同じものである' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'クラスパスに置いた従来コードは「無名モジュール」にまとめられます。移行期の互換のための仕組みです。\n' +
+        '・無名モジュールは、他のすべてのモジュールを読める（従来どおり動くように）。\n' +
+        '・一方、名前付きモジュールは無名モジュールを requires できない（無名なので名前で指定できない）。\n' +
+        '　　→ きちんとモジュール化されたコードから、雑多なクラスパスへの依存を防ぐため。\n\n' +
+        'なお「モジュールパスに置いた module-info 無しの JAR」は“自動モジュール”という別扱いで、\n' +
+        'こちらは名前を持ち requires できます（d の混同に注意）。',
+    },
   ],
 } satisfies CategoryModule

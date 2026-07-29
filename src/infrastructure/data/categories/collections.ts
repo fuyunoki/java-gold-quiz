@@ -238,5 +238,130 @@ System.out.println(nums);`,
         '何もしないと Object 既定の「参照が同じか（同じインスタンスか）」で判定され、内容が同じ別インスタンスは別物扱いになります。\n\n' +
         '・Comparable（b）は TreeSet/TreeMap の順序付けに使うもので、HashSet の同一判定には使われません。',
     },
+    {
+      id: 'collections-011',
+      categoryId: 'collections',
+      difficulty: 1,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `List<String> list = List.of("a", "b", "c");
+System.out.println(list.indexOf("b"));
+System.out.println(list.contains("z"));`,
+      choices: [
+        { id: 'a', text: '1 と false' },
+        { id: 'b', text: '2 と false' },
+        { id: 'c', text: '1 と true' },
+        { id: 'd', text: '0 と false' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'List の基本メソッドです。\n' +
+        '・indexOf(要素) … その要素が最初に現れる位置（0始まりのインデックス）を返す。無ければ -1。\n' +
+        '　　"b" は先頭から数えて2番目＝インデックス 1。\n' +
+        '・contains(要素) … 含まれていれば true。"z" は無いので false。\n\n' +
+        'インデックスは 0 始まりなので "a"=0, "b"=1, "c"=2 です。',
+    },
+    {
+      id: 'collections-013',
+      categoryId: 'collections',
+      difficulty: 2,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `Deque<Integer> stack = new ArrayDeque<>();
+stack.push(1);
+stack.push(2);
+stack.push(3);
+System.out.println(stack.pop());
+System.out.println(stack.peek());`,
+      choices: [
+        { id: 'a', text: '3 と 2' },
+        { id: 'b', text: '1 と 2' },
+        { id: 'c', text: '3 と 3' },
+        { id: 'd', text: '1 と 1' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'Deque はスタック（LIFO＝後入れ先出し）としても使えます。ArrayDeque が推奨実装です。\n' +
+        '・push(x) … 先頭に積む。1,2,3 と積むと先頭は 3。\n' +
+        '・pop() … 先頭を取り出して返す（取り除く）。→ 3。\n' +
+        '・peek() … 先頭を見るだけ（取り除かない）。pop 後の先頭は 2 なので → 2。\n\n' +
+        '出力は 3、2。古い Stack クラスより ArrayDeque を使うのが現在の推奨です。',
+    },
+    {
+      id: 'collections-014',
+      categoryId: 'collections',
+      difficulty: 2,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `List<Integer> list = new ArrayList<>(
+    List.of(1, 2, 3, 4, 5));
+list.removeIf(n -> n % 2 == 0);
+System.out.println(list);`,
+      choices: [
+        { id: 'a', text: '[1, 3, 5]' },
+        { id: 'b', text: '[2, 4]' },
+        { id: 'c', text: '[1, 2, 3, 4, 5]' },
+        { id: 'd', text: '実行時に UnsupportedOperationException' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'removeIf(条件) は「条件を満たす要素をすべて削除する」便利メソッドです。\n' +
+        'ここでは n % 2 == 0（偶数）を削除するので、偶数 2, 4 が消えて [1, 3, 5] が残ります。\n\n' +
+        '注意: 変更するので、対象は変更可能なリストである必要があります。\n' +
+        'ここは new ArrayList<>(...) でコピーしているのでOK。List.of の不変リストに直接 removeIf すると例外になります。',
+    },
+    {
+      id: 'collections-012',
+      categoryId: 'collections',
+      difficulty: 3,
+      prompt: '次のコードを実行するとどうなりますか。',
+      code: `List<Integer> list = new ArrayList<>(
+    List.of(1, 2, 3, 4));
+for (Integer n : list) {
+    if (n == 2) list.remove(n);
+}`,
+      choices: [
+        {
+          id: 'a',
+          text: '実行時に ConcurrentModificationException が発生しうる（拡張for中にコレクションを直接変更したため）',
+        },
+        { id: 'b', text: '問題なく [1, 3, 4] になる' },
+        { id: 'c', text: 'コンパイルエラーになる' },
+        { id: 'd', text: '無限ループになる' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        '拡張for文（for-each）は内部で Iterator を使っています。\n' +
+        'その反復の最中に list.remove(...) でコレクションを“直接”変更すると、Iterator が変更を検知して\n' +
+        'ConcurrentModificationException を投げます（単一スレッドでも発生します）。\n\n' +
+        '安全に削除するには次のいずれかを使います。\n' +
+        '・Iterator を明示的に使い、it.remove() で削除する。\n' +
+        '・list.removeIf(n -> n == 2) を使う。\n\n' +
+        '「ループ中の直接 remove は危険」と覚えましょう。',
+    },
+    {
+      id: 'collections-015',
+      categoryId: 'collections',
+      difficulty: 3,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `TreeSet<Integer> set = new TreeSet<>(
+    List.of(5, 1, 3, 8));
+System.out.println(set.first());
+System.out.println(set.last());
+System.out.println(set.ceiling(4));
+System.out.println(set.floor(4));`,
+      choices: [
+        { id: 'a', text: '1 / 8 / 5 / 3' },
+        { id: 'b', text: '5 / 8 / 4 / 4' },
+        { id: 'c', text: '1 / 8 / 3 / 5' },
+        { id: 'd', text: '1 / 8 / 4 / 4' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'TreeSet は要素を自然順序で保持し、範囲検索メソッドを備えます。中身はソートされて {1, 3, 5, 8}。\n' +
+        '・first() … 最小要素 → 1\n' +
+        '・last() … 最大要素 → 8\n' +
+        '・ceiling(4) … 4「以上」で最小の要素 → 5\n' +
+        '・floor(4) … 4「以下」で最大の要素 → 3\n\n' +
+        'ceiling/floor は「その値ちょうどが無いとき」に上側・下側の近い要素を返すのがポイントです\n' +
+        '（4 は集合に無いので、上は 5、下は 3）。',
+    },
   ],
 } satisfies CategoryModule

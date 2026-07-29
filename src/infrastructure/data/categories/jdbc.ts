@@ -203,5 +203,113 @@ ps.executeUpdate();`,
         '型に応じて setString / setInt / setDouble / setDate などを使い分けます。\n' +
         'また INSERT は「行を変更する」ので executeUpdate を使います（executeQuery は SELECT 用。d は誤り）。',
     },
+    {
+      id: 'jdbc-009',
+      categoryId: 'jdbc',
+      difficulty: 1,
+      prompt: 'Connection 取得直後の「自動コミット（autoCommit）」の既定状態として正しいものを選びなさい。',
+      choices: [
+        { id: 'a', text: '既定では true（各SQL文が実行ごとに自動的にコミットされる）' },
+        { id: 'b', text: '既定では false（明示的に commit しないと反映されない）' },
+        { id: 'c', text: 'Connection には autoCommit の概念はない' },
+        { id: 'd', text: '既定は接続先DBによって毎回ランダムに決まる' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'JDBC の Connection は、既定では autoCommit が true です。\n' +
+        'つまり executeUpdate などを実行するたびに、その1文が自動的にコミット（確定）されます。\n\n' +
+        '複数の更新を「まとめて成功／失敗」させたい（トランザクションにしたい）ときは、\n' +
+        'setAutoCommit(false) にしてから複数実行し、最後に commit()（失敗時は rollback()）します。\n' +
+        '「既定は自動コミットON」を押さえておきましょう。',
+    },
+    {
+      id: 'jdbc-011',
+      categoryId: 'jdbc',
+      difficulty: 2,
+      prompt: '同じINSERTを大量に実行するとき、効率化に使う仕組みとして正しいものを選びなさい。',
+      code: `PreparedStatement ps = con.prepareStatement(
+    "INSERT INTO item(name) VALUES(?)");
+for (String n : names) {
+    ps.setString(1, n);
+    ps.__________;      // (1) バッチに追加
+}
+ps.__________;          // (2) まとめて実行`,
+      choices: [
+        { id: 'a', text: '(1) addBatch()  (2) executeBatch()' },
+        { id: 'b', text: '(1) executeUpdate()  (2) commit()' },
+        { id: 'c', text: '(1) addBatch()  (2) executeUpdate()' },
+        { id: 'd', text: '(1) next()  (2) execute()' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'バッチ更新は「複数のSQL実行をためて、一括でDBに送る」仕組みで、往復回数が減り効率的です。\n' +
+        '・addBatch() … 現在のパラメータでの実行を「バッチ（ためておく箱）」に追加する。\n' +
+        '・executeBatch() … ためた分をまとめて実行し、各文の更新件数の配列（int[]）を返す。\n\n' +
+        'ループ内で毎回 executeUpdate すると1件ずつDBへ往復して遅くなります。\n' +
+        '「ループ内で addBatch、ループ後に executeBatch」が定石です。',
+    },
+    {
+      id: 'jdbc-012',
+      categoryId: 'jdbc',
+      difficulty: 2,
+      prompt: 'SQLException についての説明として正しいものをすべて選びなさい。',
+      choices: [
+        { id: 'a', text: 'SQLException はチェック例外なので、catch するか throws 宣言が必要' },
+        { id: 'b', text: 'getSQLState() や getErrorCode() で、DB由来のエラー情報を取得できる' },
+        { id: 'c', text: 'JDBC の主要メソッド（executeQuery など）は SQLException を投げうる' },
+        { id: 'd', text: 'SQLException は RuntimeException のサブクラスである' },
+      ],
+      correctChoiceIds: ['a', 'b', 'c'],
+      explanation:
+        'JDBC の例外処理の基本です。\n' +
+        '・a … SQLException は Exception 直系のチェック例外。呼び出し側は catch か throws が必要。\n' +
+        '・b … getSQLState()（標準の状態コード）や getErrorCode()（DB固有のコード）で詳細を調べられる。\n' +
+        '・c … executeQuery/executeUpdate/getConnection などはいずれも SQLException を throws する。\n\n' +
+        'd は誤りで、SQLException は RuntimeException ではなくチェック例外です。\n' +
+        'そのため JDBC コードでは例外処理（try-catch や throws）が必須になります。',
+    },
+    {
+      id: 'jdbc-010',
+      categoryId: 'jdbc',
+      difficulty: 2,
+      prompt: '汎用の execute(sql) メソッドの戻り値についての説明として正しいものを選びなさい。',
+      choices: [
+        {
+          id: 'a',
+          text: 'boolean を返す。true なら結果が ResultSet（getResultSet で取得）、false なら更新件数（getUpdateCount で取得）',
+        },
+        { id: 'b', text: 'execute は常に ResultSet を返す' },
+        { id: 'c', text: 'execute は常に int（更新件数）を返す' },
+        { id: 'd', text: 'execute は void で、結果は取得できない' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'execute(sql) は「SELECTか更新系か事前に分からない」ときに使える汎用メソッドで、boolean を返します。\n' +
+        '・true … 実行結果が ResultSet（＝SELECTなど）。getResultSet() で取り出す。\n' +
+        '・false … 結果が更新件数（＝INSERT/UPDATE/DELETEなど）。getUpdateCount() で取り出す。\n\n' +
+        '用途が明確なら executeQuery（ResultSet を返す）や executeUpdate（int を返す）の方が簡潔です。\n' +
+        'execute は「どちらか不定」の場面向けの選択肢と覚えましょう。',
+    },
+    {
+      id: 'jdbc-013',
+      categoryId: 'jdbc',
+      difficulty: 3,
+      prompt: 'ResultSet で「前の行にも戻れる（双方向スクロール）」ようにしたい。Connection での準備として正しいものを選びなさい。',
+      code: `Statement st = con.createStatement(
+    ResultSet.__________, ResultSet.CONCUR_READ_ONLY);`,
+      choices: [
+        { id: 'a', text: 'TYPE_SCROLL_INSENSITIVE（スクロール可能なResultSetを得る。previous() が使える）' },
+        { id: 'b', text: 'TYPE_FORWARD_ONLY（前方向のみ。これでも previous() が使える）' },
+        { id: 'c', text: 'CONCUR_UPDATABLE（スクロールの種類を指定する）' },
+        { id: 'd', text: 'FETCH_FORWARD（スクロール可能になる）' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'ResultSet は既定では前方向専用（TYPE_FORWARD_ONLY）で、next() で進むだけです。previous() は使えません。\n\n' +
+        '前の行にも戻りたい場合は、createStatement 時にスクロール種別を指定します。\n' +
+        '・TYPE_SCROLL_INSENSITIVE … スクロール可能。取得後のDB変更を反映しない。previous() や absolute() が使える。\n' +
+        '・TYPE_SCROLL_SENSITIVE … スクロール可能で、DBの変更を反映する（対応はドライバ依存）。\n\n' +
+        '第2引数の CONCUR_READ_ONLY / CONCUR_UPDATABLE は「更新可能か」の指定で、スクロールの可否とは別軸です（c は誤り）。',
+    },
   ],
 } satisfies CategoryModule

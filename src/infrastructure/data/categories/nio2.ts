@@ -210,5 +210,113 @@ ______ (BufferedReader br = Files.newBufferedReader(p)) {
         'd は誤りで、戻り値は List ではなく Stream<Path> です。\n' +
         '「walk＝再帰、list＝直下のみ、どちらも Stream なので閉じる」と押さえましょう。',
     },
+    {
+      id: 'nio2-012',
+      categoryId: 'nio2',
+      difficulty: 1,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `Path p = Path.of("a/b/c");
+System.out.println(p.getName(0));
+System.out.println(p.getNameCount());`,
+      choices: [
+        { id: 'a', text: 'a と 3' },
+        { id: 'b', text: 'a/b/c と 3' },
+        { id: 'c', text: 'c と 3' },
+        { id: 'd', text: 'a と 2' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'Path は「名前の並び」として要素にアクセスできます。\n' +
+        '・getName(index) … 0始まりで index 番目の要素を返す。getName(0) は先頭の "a"。\n' +
+        '・getNameCount() … 要素の数。"a/b/c" は3つなので 3。\n\n' +
+        '注意: これらのインデックスはルート（先頭の "/"）を含みません。あくまで名前部分の並びを数えます。\n' +
+        'subpath(0, 2) のように範囲を切り出すこともできます。',
+    },
+    {
+      id: 'nio2-010',
+      categoryId: 'nio2',
+      difficulty: 2,
+      prompt: 'ファイルの基本操作に使う Files のメソッドの組み合わせとして正しいものをすべて選びなさい。',
+      choices: [
+        { id: 'a', text: 'Files.copy(src, dst) … ファイルをコピーする' },
+        { id: 'b', text: 'Files.move(src, dst) … ファイルを移動（またはリネーム）する' },
+        { id: 'c', text: 'Files.delete(path) … ファイルを削除する（対象が無ければ例外）' },
+        { id: 'd', text: 'Files.rename(src, dst) … ファイル名を変更する' },
+      ],
+      correctChoiceIds: ['a', 'b', 'c'],
+      explanation:
+        'Files にはファイル操作のユーティリティが揃っています。\n' +
+        '・copy … コピー。上書きしたいときは StandardCopyOption.REPLACE_EXISTING を渡す。\n' +
+        '・move … 移動。同じディレクトリ内なら実質リネームになる（＝名前変更も move で行う）。\n' +
+        '・delete … 削除。対象が存在しないと NoSuchFileException。存在時のみ消すなら deleteIfExists。\n\n' +
+        'd は誤りで、Files に rename というメソッドはありません。名前変更は move を使います。',
+    },
+    {
+      id: 'nio2-011',
+      categoryId: 'nio2',
+      difficulty: 2,
+      prompt: 'Files.exists(path) についての説明として正しいものを選びなさい。',
+      choices: [
+        {
+          id: 'a',
+          text: 'ファイル/ディレクトリの存在を boolean で返す。存在しなくても例外は投げない',
+        },
+        { id: 'b', text: '存在しない場合は NoSuchFileException を投げる' },
+        { id: 'c', text: 'ファイルの内容を読み込んで返す' },
+        { id: 'd', text: 'ディレクトリにしか使えない' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'Files.exists(path) は「そのパスに実体があるか」を boolean で返す確認用メソッドです。\n' +
+        '存在しなくても例外は投げず、false を返すだけです（b は誤り）。\n\n' +
+        '関連メソッドも押さえましょう。\n' +
+        '・Files.notExists(path) … 「確実に存在しない」とき true（存在確認できないときは exists も notExists も false になりうる）。\n' +
+        '・Files.isDirectory / Files.isRegularFile … 種類の判定。\n' +
+        'なお getFileName などの Path 操作は存在確認をしませんが、Files 系は実ファイルシステムを見ます。',
+    },
+    {
+      id: 'nio2-013',
+      categoryId: 'nio2',
+      difficulty: 2,
+      prompt: '既存ファイルの末尾に追記したい。空欄に入れるオプションとして正しいものを選びなさい。',
+      code: `Path p = Path.of("log.txt");
+Files.writeString(p, "追記行\\n", StandardOpenOption.__________);`,
+      choices: [
+        { id: 'a', text: 'APPEND' },
+        { id: 'b', text: 'TRUNCATE_EXISTING' },
+        { id: 'c', text: 'CREATE_NEW' },
+        { id: 'd', text: 'READ' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'Files.writeString / write は、オプションで書き込みの挙動を変えられます。\n' +
+        '・APPEND … 既存内容の末尾に追記する。これが正解。\n' +
+        '・TRUNCATE_EXISTING … 既存内容を消してから書く（オプション省略時の既定に近い）。\n' +
+        '・CREATE_NEW … 新規作成。すでに存在すると例外。\n' +
+        '・READ … 読み込み用で、書き込みには不適切。\n\n' +
+        'ログ追記のように「消さずに足したい」ときは APPEND を使います。',
+    },
+    {
+      id: 'nio2-014',
+      categoryId: 'nio2',
+      difficulty: 3,
+      prompt: 'Files.lines(path) と Files.readAllLines(path) の違いとして正しいものを選びなさい。',
+      choices: [
+        {
+          id: 'a',
+          text: 'lines は Stream<Path行> を遅延的に返し（巨大ファイル向き、要 close）、readAllLines は全行を List に一括読み込みする',
+        },
+        { id: 'b', text: 'どちらも全行を List に読み込む点で同じ' },
+        { id: 'c', text: 'lines は List を返し、readAllLines は Stream を返す' },
+        { id: 'd', text: 'readAllLines は遅延評価で、巨大ファイルでもメモリを使わない' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        '同じ「行を読む」でも、メモリの使い方が違います。\n' +
+        '・Files.lines(path) … Stream<String> を返し、必要な分だけ遅延的に読む。全体をメモリに載せないので巨大ファイル向き。\n' +
+        '　　ただし内部でファイルを開くため、try-with-resources で必ず close する。\n' +
+        '・Files.readAllLines(path) … 全行を一気に List<String> に読み込む。手軽だが、巨大ファイルではメモリを圧迫する。\n\n' +
+        '「小さいファイルは readAllLines、巨大ファイルは lines を try-with-resources で」と使い分けます。',
+    },
   ],
 } satisfies CategoryModule

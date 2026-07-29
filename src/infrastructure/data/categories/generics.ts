@@ -230,5 +230,118 @@ void print(List<Integer> list) { }`,
         '・Number（c）だと List<Integer> すら渡せません（非変のため）。\n' +
         '「読むだけなら extends、入れるだけなら super」と対で覚えましょう。',
     },
+    {
+      id: 'generics-011',
+      categoryId: 'generics',
+      difficulty: 1,
+      prompt: 'ダイヤモンド演算子（<>）についての説明として正しいものを選びなさい。',
+      code: `Map<String, List<Integer>> m = new HashMap<>();`,
+      choices: [
+        { id: 'a', text: '右辺の <> は左辺の宣言から型引数を推論してくれるので、型を書き直さなくてよい' },
+        { id: 'b', text: '<> を使うと raw type になり型チェックが効かなくなる' },
+        { id: 'c', text: '<> は左辺でも使える（Map<> m = ...）' },
+        { id: 'd', text: '<> は Java 8 で廃止された' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'ダイヤモンド演算子 <> は、生成側（右辺）の型引数をコンパイラに推論させる記法です。\n' +
+        'new HashMap<>() と書けば、左辺の Map<String, List<Integer>> から型が推論され、\n' +
+        'new HashMap<String, List<Integer>>() と書かずに済みます。\n\n' +
+        'raw type（型引数なしの HashMap）とは別物で、型チェックはきちんと効きます（b は誤り）。\n' +
+        '<> はあくまで生成側で使うもので、変数宣言側では型を明示します（c は誤り）。',
+    },
+    {
+      id: 'generics-012',
+      categoryId: 'generics',
+      difficulty: 2,
+      prompt: '非境界ワイルドカード List<?> について、正しい説明をすべて選びなさい。',
+      code: `List<?> list = new ArrayList<String>();
+// (1) list.add("x");
+// (2) list.add(null);
+// (3) Object o = list.get(0);`,
+      choices: [
+        { id: 'a', text: '(1) の add("x") はコンパイルエラーになる' },
+        { id: 'b', text: '(2) の add(null) は可能（null はどんな型にも代入できるため）' },
+        { id: 'c', text: '(3) の get は Object 型で受け取れる' },
+        { id: 'd', text: 'List<?> はどんな型でも自由に add できる' },
+      ],
+      correctChoiceIds: ['a', 'b', 'c'],
+      explanation:
+        'List<?> は「型引数は何か分からない List」です。要素の“実際の型”が不明なため、原則 add できません。\n' +
+        '・a … 型が分からないので "x" を add できない（コンパイルエラー）。d も同じ理由で誤り。\n' +
+        '・b … 例外的に null だけは add できる（null はどの参照型にも入るため安全）。\n' +
+        '・c … 取り出す分には「少なくとも Object ではある」ので Object で受け取れる。\n\n' +
+        '「? extends（読み取り向き）」「? super（書き込み向き）」に対し、List<?> は「型を問わず受け取りたいが中身は読むだけ」\n' +
+        'といった場面で使います。',
+    },
+    {
+      id: 'generics-013',
+      categoryId: 'generics',
+      difficulty: 2,
+      prompt: '次のジェネリッククラスについて正しい説明を選びなさい。',
+      code: `class Box<T extends Number> {
+    private final T value;
+    Box(T value) { this.value = value; }
+    double asDouble() { return value.doubleValue(); }
+}`,
+      choices: [
+        {
+          id: 'a',
+          text: 'T が Number のサブ型に限定されるため、value.doubleValue() を安全に呼べる。Box<Integer> は作れるが Box<String> は作れない',
+        },
+        { id: 'b', text: 'T はどんな型でもよいので Box<String> も作れる' },
+        { id: 'c', text: 'value.doubleValue() はコンパイルエラーになる' },
+        { id: 'd', text: '境界を付けると T のメソッドは一切呼べなくなる' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        '<T extends Number> は「T は Number またはそのサブクラスに限る」という上限境界です。\n\n' +
+        'このおかげで、T の値に対して Number が持つメソッド（doubleValue など）を呼べます。\n' +
+        'また型引数も Number 系に制限されるため、Box<Integer> や Box<Double> は作れますが、\n' +
+        'Number ではない Box<String> はコンパイルエラーになります（b は誤り）。\n' +
+        '境界は「使える型を絞る」代わりに「その型のメソッドを使える」ようにするための指定です。',
+    },
+    {
+      id: 'generics-014',
+      categoryId: 'generics',
+      difficulty: 2,
+      prompt: '型パラメータに複数の境界を付ける宣言として正しいものを選びなさい。（クラス A、インターフェース B, C）',
+      choices: [
+        { id: 'a', text: '<T extends A & B & C>（クラスを先頭、そのあとインターフェースを & で並べる）' },
+        { id: 'b', text: '<T extends A, B, C>（カンマ区切り）' },
+        { id: 'c', text: '<T extends B & A>（インターフェースを先に書く）' },
+        { id: 'd', text: '<T extends A | B | C>（パイプ区切り）' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        '型パラメータには複数の境界を「&」でつなげて指定できます（交差型）。ルールは次の通りです。\n' +
+        '・区切りは「&」（カンマやパイプではない。b, d は誤り）。\n' +
+        '・クラスを境界に含める場合は、必ず先頭に書く。そのあとにインターフェースを並べる。\n' +
+        '　　→ クラスは1つまで、しかも先頭。so <T extends B & A>（クラス A が後ろ）は不可（c は誤り）。\n\n' +
+        '例: <T extends Number & Comparable<T>> のように「Number でもあり Comparable でもある型」を要求できます。',
+    },
+    {
+      id: 'generics-015',
+      categoryId: 'generics',
+      difficulty: 3,
+      prompt: '次のコードで使われている <String> の記法についての説明として正しいものを選びなさい。',
+      code: `List<String> list = Collections.<String>emptyList();`,
+      choices: [
+        {
+          id: 'a',
+          text: 'ジェネリックメソッド呼び出しで型引数を明示する「型ウィットネス」。推論だけでは型が定まりにくい場合に使う',
+        },
+        { id: 'b', text: 'キャスト演算子の一種である' },
+        { id: 'c', text: 'この記法はコンパイルエラーになる' },
+        { id: 'd', text: 'emptyList は必ず型ウィットネスを書かないと呼べない' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'メソッド名の前に .<型>() と書くのは「型ウィットネス（type witness）」で、\n' +
+        'ジェネリックメソッドの型引数を明示的に指定する記法です。\n\n' +
+        'Collections.<String>emptyList() は「String 用の空リストが欲しい」とコンパイラに明示しています。\n' +
+        '多くの場合は代入先などから型が推論されるため省略できますが（d は誤り）、\n' +
+        'メソッドチェーンの途中など、推論だけでは型が定まりにくいときに使うと便利です。',
+    },
   ],
 } satisfies CategoryModule

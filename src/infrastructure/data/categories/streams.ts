@@ -242,5 +242,120 @@ System.out.println(c);`,
         '最後の System.out.println(c) による 2 だけが出力されます。\n' +
         '「peek はデバッグ用であり、必ず実行されるとは限らない」ことを示す有名な例です。',
     },
+    {
+      id: 'streams-011',
+      categoryId: 'streams',
+      difficulty: 1,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `List<Integer> r = Stream.of(3, 1, 2, 3, 1)
+    .distinct()
+    .sorted()
+    .collect(Collectors.toList());
+System.out.println(r);`,
+      choices: [
+        { id: 'a', text: '[1, 2, 3]' },
+        { id: 'b', text: '[3, 1, 2]' },
+        { id: 'c', text: '[1, 1, 2, 3, 3]' },
+        { id: 'd', text: '[3, 3, 2, 1, 1]' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        '2つの中間操作を順に適用します。\n' +
+        '・distinct() … 重複を取り除く（equals で判定）。[3,1,2,3,1] → [3,1,2]。\n' +
+        '・sorted() … 自然順序（昇順）に並べ替える。[3,1,2] → [1,2,3]。\n\n' +
+        '結果は [1, 2, 3]。distinct と sorted はどちらも Stream を返す中間操作なので、こうしてつなげられます。',
+    },
+    {
+      id: 'streams-012',
+      categoryId: 'streams',
+      difficulty: 2,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `List<Integer> r = IntStream.rangeClosed(1, 10)
+    .boxed()
+    .skip(2)
+    .limit(3)
+    .collect(Collectors.toList());
+System.out.println(r);`,
+      choices: [
+        { id: 'a', text: '[3, 4, 5]' },
+        { id: 'b', text: '[1, 2, 3]' },
+        { id: 'c', text: '[2, 3, 4]' },
+        { id: 'd', text: '[3, 4, 5, 6]' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'skip と limit は「範囲を切り出す」中間操作です。\n' +
+        '・boxed() … IntStream（int）を Stream<Integer> に変換（collect(toList) で使うため）。\n' +
+        '・skip(2) … 先頭の2要素を飛ばす。1..10 → 3..10。\n' +
+        '・limit(3) … 先頭から3要素だけ取る。3,4,5。\n\n' +
+        '結果は [3, 4, 5]。「skip で捨ててから limit で取る」順序に注意しましょう。',
+    },
+    {
+      id: 'streams-014',
+      categoryId: 'streams',
+      difficulty: 2,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `Map<Integer, Long> m = Stream.of("a", "bb", "cc", "d")
+    .collect(Collectors.groupingBy(
+        String::length,
+        Collectors.counting()));
+System.out.println(m);`,
+      choices: [
+        { id: 'a', text: '{1=2, 2=2}' },
+        { id: 'b', text: '{1=[a, d], 2=[bb, cc]}' },
+        { id: 'c', text: '{2=2, 1=2}' },
+        { id: 'd', text: '{a=1, bb=2, cc=2, d=1}' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'groupingBy の第2引数に「ダウンストリーム collector」を渡すと、グループ内をさらに集計できます。\n' +
+        'ここでは長さでグループ分けし、各グループを Collectors.counting() で「件数」に集約しています。\n\n' +
+        '長さ1: a, d → 2件／長さ2: bb, cc → 2件。よって {1=2, 2=2} になります。\n' +
+        '第2引数なしの groupingBy なら値は List（{1=[a, d], 2=[bb, cc]}）ですが、counting を渡すと件数（Long）になります。',
+    },
+    {
+      id: 'streams-015',
+      categoryId: 'streams',
+      difficulty: 2,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `List<Integer> r = Stream.iterate(1, n -> n * 2)
+    .limit(4)
+    .collect(Collectors.toList());
+System.out.println(r);`,
+      choices: [
+        { id: 'a', text: '[1, 2, 4, 8]' },
+        { id: 'b', text: '[2, 4, 8, 16]' },
+        { id: 'c', text: '[1, 2, 3, 4]' },
+        { id: 'd', text: '無限ループになる' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        'Stream.iterate(初期値, 更新関数) は「初期値から、関数を繰り返し適用した値」を生成する無限ストリームです。\n' +
+        'ここでは 1 から始めて「2倍」を繰り返すので 1, 2, 4, 8, 16, … と続きます。\n\n' +
+        '無限ですが、limit(4) で先頭4個に区切るため [1, 2, 4, 8] になります（無限ループにはなりません。d は誤り）。\n' +
+        '無限ストリームは必ず limit などで有限に区切って使うのがポイントです。',
+    },
+    {
+      id: 'streams-013',
+      categoryId: 'streams',
+      difficulty: 3,
+      prompt: '次のコードの出力を選びなさい。',
+      code: `boolean b = Stream.<Integer>of()   // 空のストリーム
+    .allMatch(n -> n > 100);
+System.out.println(b);`,
+      choices: [
+        { id: 'a', text: 'true' },
+        { id: 'b', text: 'false' },
+        { id: 'c', text: 'コンパイルエラー' },
+        { id: 'd', text: '実行時例外' },
+      ],
+      correctChoiceIds: ['a'],
+      explanation:
+        '空ストリームに対する判定操作の挙動は、知らないと間違えるひっかけです。\n' +
+        '・allMatch … 要素が1つも無ければ true（「反例が無いので全部満たす」とみなす。数学の“空虚な真”）。\n' +
+        '・anyMatch … 空なら false（満たす要素が1つも無い）。\n' +
+        '・noneMatch … 空なら true（該当が1つも無い）。\n\n' +
+        'この例は空ストリームの allMatch なので、条件の内容に関係なく true になります。',
+    },
   ],
 } satisfies CategoryModule

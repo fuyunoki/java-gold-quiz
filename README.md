@@ -3,6 +3,16 @@
 Java SE 17 Gold の練習問題を **分野ごと** に復習するフロントエンドのみのアプリ。
 iPhone の Safari（ホーム画面追加でのPWA利用）を主対象にしています。
 
+**公開URL: https://fuyunoki.github.io/java-gold-quiz/**
+（`main` ブランチへの push で GitHub Actions が自動デプロイします）
+
+## iPhone で使う（PWA）
+
+1. iPhone の Safari で https://fuyunoki.github.io/java-gold-quiz/ を開く
+2. 共有ボタン（□に↑）→ **「ホーム画面に追加」**
+3. 追加されたアイコンから起動すると全画面のアプリとして使え、
+   一度開けば以降はオフラインでも復習できます
+
 - Vue 3 + Composition API (`<script setup>`) + TypeScript + Vite
 - クリーンアーキテクチャ（依存の向きを内側＝ドメインへ固定）
 - PWA 対応（オフラインでも復習可能 / ホーム画面に追加）

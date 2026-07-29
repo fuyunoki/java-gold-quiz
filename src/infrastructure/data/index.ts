@@ -5,6 +5,12 @@ import { genericsModule } from './categories/generics'
 import { collectionsModule } from './categories/collections'
 import { exceptionsModule } from './categories/exceptions'
 import { modernJavaModule } from './categories/modern-java'
+import { concurrencyModule } from './categories/concurrency'
+import { nio2Module } from './categories/nio2'
+import { modulesModule } from './categories/modules'
+import { jdbcModule } from './categories/jdbc'
+import { localizationModule } from './categories/localization'
+import { datetimeModule } from './categories/datetime'
 
 /**
  * アプリが扱う全分野のデータ登録簿。
@@ -26,5 +32,11 @@ export const categoryModules: readonly CategoryModule[] = [
   collectionsModule,
   exceptionsModule,
   modernJavaModule,
-  // 追加候補: concurrency, nio2, modules(JPMS), jdbc, localization, annotations ...
+  concurrencyModule,
+  nio2Module,
+  modulesModule,
+  jdbcModule,
+  localizationModule,
+  datetimeModule,
+  // 追加候補: annotations, io(java.io/シリアライズ), inner-classes ...
 ]
